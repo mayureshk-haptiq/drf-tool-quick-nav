@@ -16,19 +16,13 @@ import type { NavItemConfig } from '@/utils/navigation';
 type NavItemProps = {
 	item: NavItemConfig;
 	onNavigate: (url: string) => void;
-	loadingUrl: string | null;
 };
 
-export default function NavItem({
-	item,
-	onNavigate,
-	loadingUrl,
-}: NavItemProps) {
+export default function NavItem({ item, onNavigate }: NavItemProps) {
 	const [open, setOpen] = useState(false);
 	const Icon = item.icon;
 	const hasChildren = Boolean(item.children?.length);
 	const itemUrl = item.url;
-	const isBusy = itemUrl != null && loadingUrl === itemUrl;
 
 	const handleClick = () => {
 		if (hasChildren) {
@@ -42,7 +36,6 @@ export default function NavItem({
 		<>
 			<ListItemButton
 				onClick={handleClick}
-				disabled={isBusy}
 				sx={{
 					py: 0.65,
 					px: 1.25,
@@ -106,7 +99,6 @@ export default function NavItem({
 							<ListItemButton
 								key={child.id}
 								onClick={() => onNavigate(child.url)}
-								disabled={loadingUrl === child.url}
 								sx={{
 									py: 0.5,
 									pl: 4.5,

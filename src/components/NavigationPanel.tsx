@@ -1,22 +1,18 @@
 import { useCallback, useState } from 'react';
 import { Alert, Box, List, Typography } from '@mui/material';
-import { postToolChangedNavigate } from '@/utils/toolBridge';
 import { NAV_ITEMS } from '@/utils/navigation';
 import NavItem from './NavItem';
 
 export default function NavigationPanel() {
-	const [navError, setNavError] = useState<string | null>(null);
-	const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
+	const [openError, setOpenError] = useState<string | null>(null);
 
-	const navigateToUrl = useCallback((url: string) => {
-		setNavError(null);
-		setLoadingUrl(url);
-		try {
-			postToolChangedNavigate(url);
-		} catch (e) {
-			setNavError(e instanceof Error ? e.message : 'Navigation failed');
-		} finally {
-			setLoadingUrl(null);
+	const openInNewTab = useCallback((url: string) => {
+		setOpenError(null);
+		const win = window.open(url, '_blank', 'noopener,noreferrer');
+		if (win == null) {
+			setOpenError(
+				'Could not open a new tab. Allow pop-ups for this site or try again.',
+			);
 		}
 	}, []);
 
@@ -43,28 +39,23 @@ export default function NavigationPanel() {
 					variant="caption"
 					sx={{ color: 'text.secondary', fontSize: 11, display: 'block' }}
 				>
-					Open in Visual Editor
+					Opens each story in a new browser tab
 				</Typography>
 			</Box>
 
-			{navError && (
+			{openError && (
 				<Alert
-					severity="error"
+					severity="warning"
 					sx={{ mx: 1, mb: 1, py: 0 }}
-					onClose={() => setNavError(null)}
+					onClose={() => setOpenError(null)}
 				>
-					{navError}
+					{openError}
 				</Alert>
 			)}
 
 			<List component="nav" disablePadding sx={{ px: 0.25, pb: 1 }}>
 				{NAV_ITEMS.map((item) => (
-					<NavItem
-						key={item.id}
-						item={item}
-						onNavigate={navigateToUrl}
-						loadingUrl={loadingUrl}
-					/>
+					<NavItem key={item.id} item={item} onNavigate={openInNewTab} />
 				))}
 			</List>
 		</Box>
