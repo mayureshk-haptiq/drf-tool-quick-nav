@@ -1,0 +1,31 @@
+{
+	"name": "storyblok-quick-nav",
+	"version": "1.0.0",
+	"description": "Storyblok Space Plugin for quick navigation to content sections",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"dependencies": {
+		"@emotion/react": "^11.14.0",
+		"@emotion/styled": "^11.14.1",
+		"@mui/icons-material": "^7.3.7",
+		"@mui/material": "^7.3.7",
+		"@storyblok/app-extension-auth": "^2.2.1",
+		"@storyblok/mui": "^0.3.1",
+		"jsonwebtoken": "^9.0.2",
+		"next": "13.4.19",
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
+		"typescript": "5.8.3"
+	},
+	"devDependencies": {
+		"@types/jsonwebtoken": "^9.0.9",
+		"@types/node": "22.14.0",
+		"@types/react": "18.2.21",
+		"@types/react-dom": "18.2.7"
+	}
+}
