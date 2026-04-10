@@ -15,51 +15,47 @@ import type { NavItemConfig } from '@/utils/navigation';
 
 type NavItemProps = {
 	item: NavItemConfig;
-	onNavigate: (url: string) => void;
 };
 
-export default function NavItem({ item, onNavigate }: NavItemProps) {
+const externalLinkProps = {
+	target: '_blank' as const,
+	rel: 'noopener noreferrer' as const,
+};
+
+export default function NavItem({ item }: NavItemProps) {
 	const [open, setOpen] = useState(false);
 	const Icon = item.icon;
 	const hasChildren = Boolean(item.children?.length);
 	const itemUrl = item.url;
 
-	const handleClick = () => {
-		if (hasChildren) {
-			setOpen((prev) => !prev);
-		} else if (itemUrl) {
-			onNavigate(itemUrl);
-		}
-	};
-
 	return (
 		<>
-			<ListItemButton
-				onClick={handleClick}
-				sx={{
-					py: 0.65,
-					px: 1.25,
-					mx: 0.5,
-					my: 0.1,
-					borderRadius: 1.5,
-					transition: 'background-color 0.15s ease',
-					'&:hover': {
-						backgroundColor: 'action.hover',
-					},
-				}}
-			>
-				<ListItemIcon sx={{ minWidth: 28 }}>
-					<Icon sx={{ fontSize: 18, color: 'primary.main' }} />
-				</ListItemIcon>
-				<ListItemText
-					primary={item.label}
-					primaryTypographyProps={{
-						fontSize: 13,
-						fontWeight: 500,
-						letterSpacing: '-0.01em',
+			{hasChildren ? (
+				<ListItemButton
+					onClick={() => setOpen((prev) => !prev)}
+					sx={{
+						py: 0.65,
+						px: 1.25,
+						mx: 0.5,
+						my: 0.1,
+						borderRadius: 1.5,
+						transition: 'background-color 0.15s ease',
+						'&:hover': {
+							backgroundColor: 'action.hover',
+						},
 					}}
-				/>
-				{hasChildren ? (
+				>
+					<ListItemIcon sx={{ minWidth: 28 }}>
+						<Icon sx={{ fontSize: 18, color: 'primary.main' }} />
+					</ListItemIcon>
+					<ListItemText
+						primary={item.label}
+						primaryTypographyProps={{
+							fontSize: 13,
+							fontWeight: 500,
+							letterSpacing: '-0.01em',
+						}}
+					/>
 					<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
 						<Chip
 							label={item.children!.length}
@@ -79,7 +75,37 @@ export default function NavItem({ item, onNavigate }: NavItemProps) {
 							<ExpandMore sx={{ fontSize: 18, color: 'text.secondary' }} />
 						)}
 					</Box>
-				) : (
+				</ListItemButton>
+			) : (
+				<ListItemButton
+					component="a"
+					href={itemUrl}
+					{...externalLinkProps}
+					sx={{
+						py: 0.65,
+						px: 1.25,
+						mx: 0.5,
+						my: 0.1,
+						borderRadius: 1.5,
+						transition: 'background-color 0.15s ease',
+						textDecoration: 'none',
+						color: 'inherit',
+						'&:hover': {
+							backgroundColor: 'action.hover',
+						},
+					}}
+				>
+					<ListItemIcon sx={{ minWidth: 28 }}>
+						<Icon sx={{ fontSize: 18, color: 'primary.main' }} />
+					</ListItemIcon>
+					<ListItemText
+						primary={item.label}
+						primaryTypographyProps={{
+							fontSize: 13,
+							fontWeight: 500,
+							letterSpacing: '-0.01em',
+						}}
+					/>
 					<OpenInNewIcon
 						sx={{
 							fontSize: 14,
@@ -89,8 +115,8 @@ export default function NavItem({ item, onNavigate }: NavItemProps) {
 							'.MuiListItemButton-root:hover &': { opacity: 1 },
 						}}
 					/>
-				)}
-			</ListItemButton>
+				</ListItemButton>
+			)}
 
 			{hasChildren && (
 				<Collapse in={open} timeout={200}>
@@ -98,7 +124,9 @@ export default function NavItem({ item, onNavigate }: NavItemProps) {
 						{item.children!.map((child) => (
 							<ListItemButton
 								key={child.id}
-								onClick={() => onNavigate(child.url)}
+								component="a"
+								href={child.url}
+								{...externalLinkProps}
 								sx={{
 									py: 0.5,
 									pl: 4.5,
@@ -106,6 +134,8 @@ export default function NavItem({ item, onNavigate }: NavItemProps) {
 									mx: 0.5,
 									borderRadius: 1.25,
 									transition: 'background-color 0.15s ease',
+									textDecoration: 'none',
+									color: 'inherit',
 									'&:hover': {
 										backgroundColor: 'action.hover',
 									},

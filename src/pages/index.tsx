@@ -12,7 +12,7 @@ export default function Home() {
 				<title>Quick Navigation</title>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 			</Head>
-			<main>
+			<main data-sb-tool-main>
 				{completed ? (
 					<NavigationPanel />
 				) : (

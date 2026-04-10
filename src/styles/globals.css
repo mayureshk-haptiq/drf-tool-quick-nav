@@ -16,4 +16,18 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	background-color: #fafbfc;
+	min-height: 0;
+	height: auto;
+}
+
+#__next {
+	min-height: 0;
+	height: auto;
+}
+
+main {
+	display: block;
+	min-height: 0;
+	width: 100%;
+	height: auto;
 }
