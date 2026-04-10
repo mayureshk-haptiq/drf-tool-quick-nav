@@ -1,61 +1,69 @@
-import { useEffect } from 'react';
+import { type RefObject, useLayoutEffect } from 'react';
 import { tryPostToolChangedHeight } from '@/utils/toolBridge';
 
-const BOTTOM_PAD_PX = 6;
+const BOTTOM_PAD_PX = 8;
 
-function measureContentHeight(root: HTMLElement): number {
-	const rect = root.getBoundingClientRect();
-	const scrollH = root.scrollHeight;
-	const blockH = Math.max(rect.height, scrollH);
-	return Math.ceil(blockH + BOTTOM_PAD_PX);
+function measureScrollableHeight(el: HTMLElement): number {
+	return Math.ceil(
+		Math.max(
+			el.scrollHeight,
+			el.offsetHeight,
+			el.getBoundingClientRect().height,
+		) + BOTTOM_PAD_PX,
+	);
 }
 
 /**
- * Reports iframe height to the Visual Editor so the shell matches tool content
- * ([Storyblok docs](https://www.storyblok.com/docs/plugins/tool-plugins#integrating-with-the-visual-editor)).
- * Observes `<main>` so height tracks the nav list (including expand/collapse).
+ * Reports iframe height from a content wrapper so Storyblok can resize `.tool__iframe`.
+ * Observes the element with ResizeObserver (list growth, MUI Collapse, auth swap).
+ *
+ * @see https://www.storyblok.com/docs/plugins/tool-plugins#integrating-with-the-visual-editor
  */
-export const useToolIframeHeight = () => {
-	useEffect(() => {
-		const getRoot = (): HTMLElement | null =>
-			document.querySelector('main') ?? document.body;
-
+export const useToolIframeHeight = (contentRef: RefObject<HTMLElement | null>) => {
+	useLayoutEffect(() => {
 		let raf = 0;
+		let cancelled = false;
+
 		const postHeight = () => {
 			cancelAnimationFrame(raf);
 			raf = requestAnimationFrame(() => {
-				const el = getRoot();
+				if (cancelled) {
+					return;
+				}
+				const el = contentRef.current;
 				if (!el) {
 					return;
 				}
-				tryPostToolChangedHeight(measureContentHeight(el));
+				tryPostToolChangedHeight(measureScrollableHeight(el));
 			});
 		};
 
-		postHeight();
-
-		const el = getRoot();
+		const el = contentRef.current;
 		if (!el) {
 			return;
 		}
+
+		postHeight();
 
 		const resizeObserver = new ResizeObserver(() => postHeight());
 		resizeObserver.observe(el);
 
 		window.addEventListener('resize', postHeight);
 
-		// Auth swap / fonts can finish after first paint; Collapse uses transitions
 		const t0 = window.setTimeout(postHeight, 0);
-		const t1 = window.setTimeout(postHeight, 150);
-		const t2 = window.setTimeout(postHeight, 400);
+		const t1 = window.setTimeout(postHeight, 200);
+		const t2 = window.setTimeout(postHeight, 450);
+		const t3 = window.setTimeout(postHeight, 700);
 
 		return () => {
+			cancelled = true;
 			cancelAnimationFrame(raf);
 			window.clearTimeout(t0);
 			window.clearTimeout(t1);
 			window.clearTimeout(t2);
+			window.clearTimeout(t3);
 			resizeObserver.disconnect();
 			window.removeEventListener('resize', postHeight);
 		};
-	}, []);
+	}, [contentRef]);
 };

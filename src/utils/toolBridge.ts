@@ -2,7 +2,34 @@ import type {
 	ToolChangedHeightPayload,
 	ToolChangedNavigatePayload,
 } from '@/types';
-import { KEY_PARENT_HOST, TOOL_PLUGIN_SLUG } from '@/utils/const';
+import {
+	KEY_PARENT_HOST,
+	KEY_SLUG,
+	TOOL_PLUGIN_SLUG,
+} from '@/utils/const';
+
+/**
+ * Storyblok passes the extension slug as `slug` and stores it after App Bridge validate.
+ * Height updates are ignored if `tool` does not match the installed extension slug.
+ */
+export const getToolSlugForPostMessage = (): string => {
+	if (typeof window === 'undefined') {
+		return TOOL_PLUGIN_SLUG;
+	}
+	try {
+		const stored = sessionStorage.getItem(KEY_SLUG);
+		if (stored) {
+			return stored;
+		}
+	} catch {
+		// sessionStorage unavailable
+	}
+	const q = new URLSearchParams(window.location.search).get('slug');
+	if (q) {
+		return q;
+	}
+	return TOOL_PLUGIN_SLUG;
+};
 
 const getParentHost = (): string => {
 	const storedHost = sessionStorage.getItem(KEY_PARENT_HOST);
@@ -21,32 +48,32 @@ const getParentHost = (): string => {
 export const postToolChangedNavigate = (url: string) => {
 	const payload: ToolChangedNavigatePayload = {
 		action: 'tool-changed',
-		tool: TOOL_PLUGIN_SLUG,
+		tool: getToolSlugForPostMessage(),
 		event: 'navigate',
 		url,
 	};
 	window.parent.postMessage(payload, getParentHost());
 };
 
+/**
+ * Visual Editor listens for height on the parent window. Storyblok docs use `'*'` as targetOrigin
+ * so delivery is reliable; `tool` must match the extension slug.
+ */
 export const postToolChangedHeight = (height: number) => {
 	const payload: ToolChangedHeightPayload = {
 		action: 'tool-changed',
-		tool: TOOL_PLUGIN_SLUG,
+		tool: getToolSlugForPostMessage(),
 		event: 'heightChange',
-		height,
+		height: Math.max(1, Math.round(height)),
 	};
-	window.parent.postMessage(payload, getParentHost());
+	window.parent.postMessage(payload, '*');
 };
 
 /**
- * Same as post helpers but skips if parent origin is not yet known (e.g. before iframe params load).
+ * Height helper: always posts (no parent-host dependency).
  */
 export const tryPostToolChangedHeight = (height: number) => {
-	try {
-		postToolChangedHeight(height);
-	} catch {
-		// no-op
-	}
+	postToolChangedHeight(height);
 };
 
 export const tryPostToolChangedNavigate = (url: string) => {
